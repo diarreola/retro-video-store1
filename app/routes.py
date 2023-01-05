@@ -6,6 +6,7 @@ from app.models.customer import Customer
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
+rentals_bp = Blueprint("rentals_bp", __name__, url_prefix="/rentals")
 
 # --------------------------------
 # ----------- CUSTOMERS ----------
