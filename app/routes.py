@@ -32,9 +32,6 @@ def create_customer():
     customer_response = new_customer.to_dict()
     return jsonify(customer_response), 201
 
-    #return make_response(f"Customer {new_customer.name} successfully created", 201)
-
-
 @customers_bp.route("", methods=["GET"])
 def read_all_customers():
     customer_query = Customer.query
@@ -65,11 +62,7 @@ def create_video():
     db.session.add(new_video)
     db.session.commit()
     
-    video_response = {"id": new_video.id,
-                    "title":new_video.title,
-                    "release_date":new_video.release_date,
-                    "total_inventory":new_video.total_inventory
-                    }
+    video_response = new_video.to_dict()
     return jsonify(video_response),201
 
 @videos_bp.route("", methods=["GET"])
