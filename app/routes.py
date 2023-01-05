@@ -41,7 +41,10 @@ def read_all_customers():
         customers_response.append(customer.to_dict())
     return jsonify(customers_response)
 
-
+@customers_bp.route("/<customer_id>", methods=["GET"])
+def read_one_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+    return customer.to_dict()
 
 # --------------------------------
 # ----------- VIDEOS -------------
@@ -74,6 +77,11 @@ def read_all_videos():
         videos_response.append(video.to_dict())
     return jsonify(videos_response),200
 
+@videos_bp.route("/<video_id>", methods=["GET"])
+def read_one_video(video_id):
+    video = validate_model(Video, video_id)
+    return video.to_dict()
+
 # --------------------------------
 # ----------- Helper Functions ---
 # --------------------------------
@@ -86,7 +94,7 @@ def validate_model(cls, model_id):
     model = cls.query.get(model_id)
     
     if not model:
-        abort(make_response({"message":f"{cls.__name__} {model_id} not found"}, 404))
+        abort(make_response({"message":f"{cls.__name__} {model_id} was not found"}, 404))
     
     return model
 
