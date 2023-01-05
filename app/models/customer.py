@@ -16,3 +16,12 @@ class Customer(db.Model):
                 "phone": self.phone,
                 "registered_at": self.registered_at
             }
+
+    @classmethod
+    def from_dict(cls, customer_data):
+        new_customer = Customer(name = customer_data["name"],
+                    postal_code = customer_data["postal_code"],
+                    phone = customer_data["phone"],
+                    registered_at = customer_data["registered_at"]
+                    )
+        return new_customer
