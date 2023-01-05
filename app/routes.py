@@ -63,6 +63,17 @@ def update_customer(customer_id):
     customer_response = customer.to_dict()
 
     return jsonify(customer_response),200
+    
+@customers_bp.route("/<customer_id>", methods=["DELETE"])
+def delete_customer(customer_id):
+    customer = validate_model(Customer, customer_id)
+
+    db.session.delete(customer)
+    db.session.commit()
+
+    customer_response = customer.to_dict()
+    return jsonify(customer_response),200
+    #return make_response(f"Customer #{customer.id} successfully deleted")
 
 # --------------------------------
 # ----------- VIDEOS -------------
@@ -115,6 +126,16 @@ def update_video(video_id):
     db.session.commit()
     video_response = video.to_dict()
 
+    return jsonify(video_response),200
+
+@videos_bp.route("/<video_id>", methods=["DELETE"])
+def delete_video(video_id):
+    video = validate_model(Video, video_id)
+
+    db.session.delete(video)
+    db.session.commit()
+
+    video_response = video.to_dict()
     return jsonify(video_response),200
 
 # --------------------------------
