@@ -7,3 +7,12 @@ class Customer(db.Model):
     phone = db.Column(db.String, nullable=False)
     registered_at = db.Column(db.DateTime)
     videos_checked_out_count = db.Column(db.Integer)
+
+    def to_dict(self):
+        return {
+                "id": self.id,
+                "name": self.name,
+                "postal_code": self.postal_code,
+                "phone": self.phone,
+                "registered_at": self.registered_at
+            }

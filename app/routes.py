@@ -29,7 +29,22 @@ def create_customer():
     db.session.add(new_customer)
     db.session.commit()
 
-    return make_response(f"Customer {new_customer.name} successfully created", 201)
+    customer_response = new_customer.to_dict()
+    return jsonify(customer_response), 201
+
+    #return make_response(f"Customer {new_customer.name} successfully created", 201)
+
+
+@customers_bp.route("", methods=["GET"])
+def read_all_customers():
+    customer_query = Customer.query
+    customers = customer_query.all()
+    customers_response = []
+    for customer in customers:
+        customers_response.append(customer.to_dict())
+    return jsonify(customers_response)
+
+
 
 # --------------------------------
 # ----------- VIDEOS -------------
@@ -56,5 +71,30 @@ def create_video():
                     "total_inventory":new_video.total_inventory
                     }
     return jsonify(video_response),201
+
+@videos_bp.route("", methods=["GET"])
+def read_all_videos():
+    video_query = Video.query
+    videos = video_query.all()
+    videos_response = []
+    for video in videos:
+        videos_response.append(video.to_dict())
+    return jsonify(videos_response),200
+
+# --------------------------------
+# ----------- Helper Functions ---
+# --------------------------------
+def validate_model(cls, model_id):
+    try:
+        model_id = int(model_id)
+    except:
+        abort(make_response({"message":f"{cls.__name__} {model_id} invalid"}, 400))
+
+    model = cls.query.get(model_id)
     
+    if not model:
+        abort(make_response({"message":f"{cls.__name__} {model_id} not found"}, 404))
+    
+    return model
+
 
