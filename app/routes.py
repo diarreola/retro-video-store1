@@ -3,6 +3,7 @@ from app.models.video import Video
 from app import db
 from datetime import datetime
 from app.models.customer import Customer
+from app.models.rental import Rental
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
@@ -156,3 +157,40 @@ def validate_model(cls, model_id):
     return model
 
 
+# --------------------------------
+# ----------- RENTALS ----------
+# --------------------------------
+
+## `POST /rentals/check-out`
+@rentals_bp.route("/check-out", methods=["POST"])
+def create_rental():
+    request_body = request.get_json()
+
+    try:
+        new_rental = Rental.from_dict(request_body)
+            #  Customer(name=request_body["name"],
+            #         postal_code=request_body["postal_code"],
+            #         phone=request_body["phone"],
+            #         registered_at=datetime.now()
+            #         )
+    except KeyError as key_error:
+        abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
+
+    db.session.add(new_rental)
+    db.session.commit()
+
+    rental_response = new_rental.to_dict()
+    return jsonify(rental_response), 201
+
+
+
+#`POST /rentals/check-in`
+
+
+
+## `GET /customers/<id>/rentals`
+
+
+
+
+## `GET /videos/<id>/rentals`
