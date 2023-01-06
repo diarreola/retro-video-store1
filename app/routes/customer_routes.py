@@ -14,8 +14,8 @@ def create_customer():
     try:
         new_customer = Customer(name=request_body["name"],
                     postal_code=request_body["postal_code"],
-                    phone=request_body["phone"],
-                    registered_at=datetime.now()
+                    phone=request_body["phone"]
+                    # registered_at=datetime.now()
                     )
     except KeyError as key_error:
         abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
