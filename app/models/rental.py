@@ -1,8 +1,9 @@
 from app import db
+import datetime
 
 class Rental(db.Model):
-    id = db.Column(db.Integer, primary_key=True),
-    due_date = db.Column(db.DateTime, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    due_date = db.Column(db.DateTime, default=(datetime.date.today()+datetime.timedelta(days=7)))
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), primary_key=True,nullable=False)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), primary_key=True,nullable=False)
     customer = db.relationship("Customer", back_populates="rentals")
@@ -20,10 +21,8 @@ class Rental(db.Model):
     def from_dict(cls, rental_data):
         new_rental = Rental(
             customer_id = rental_data["customer_id"],
-            video_id = rental_data["video_id"],
-            due_date = rental_data["due_date"]
+            video_id = rental_data["video_id"]
         )
         return new_rental
 
-    
-  
+
