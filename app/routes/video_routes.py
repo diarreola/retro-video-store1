@@ -13,7 +13,7 @@ def create_video():
     try:
         new_video = Video(title=request_body["title"],
                     release_date=request_body["release_date"],
-                    total_inventory=request_body["total_inventory"]
+                    total_inventory=request_body["total_inventory"]                    
                     )
     except KeyError as key_error:
         abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
