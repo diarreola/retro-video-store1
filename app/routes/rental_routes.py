@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, abort, make_response, request 
 from app import db
 from app.models.rental import Rental
+from app.models.customer import Customer
+from app.models.video import Video
 from app.routes.routes_helper import validate_model
 
 rentals_bp = Blueprint("rentals_bp", __name__, url_prefix="/rentals")
@@ -11,24 +13,39 @@ def create_rental():
     request_body = request.get_json()
 
     try:
+        customer = validate_model(Customer, request_body["customer_id"])
+        video = validate_model(Video, request_body["video_id"])
+        if video.total_inventory == 0:
+            abort(make_response({"message":f"Could not perform checkout"}, 400))
+
+        available_inventory = video.total_inventory - video.videos_checked_out_count
+        if available_inventory == 0:
+            abort(make_response({"message":f"Could not perform checkout"}, 400))
+        
         new_rental = Rental(customer_id=request_body["customer_id"],
                 video_id=request_body["video_id"]
                 )
-    except KeyError as key_error:
-        abort(make_response({"details":f"Request body must include {key_error.args[0]}."}, 400))
+    except:
+        abort(make_response({"message":f"Could not perform checkout"}, 400))
 
+    video.video_checked_out_count += 1
+    customer.video_checked_out_count += 1
+    # db.session.add(customer)
+    # db.session.add(video)
     db.session.add(new_rental)
     db.session.commit()
 
+
     rental_response = new_rental.to_dict()
 
-    # assert response_body["videos_checked_out_count"] == 1
-    # assert response_body["available_inventory"] == 0
+    # add 
+    rental_response["videos_checked_out_count"] = customer.videos_checked_out_count
+    rental_response["available_inventory"] = available_inventory
+
     return jsonify(rental_response), 200
 
 
     # create a rental for the specific video and customer.
-    # create a due date. The rental's due date is the seven days from the current date.
 
 #     {
 #   "customer_id": 122581016,
