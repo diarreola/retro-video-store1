@@ -18,7 +18,7 @@ def create_rental():
         if video.total_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
 
-        videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()
+        videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()  # look into count method
 
         available_inventory = video.total_inventory - len(videos_checked_out)
         if available_inventory == 0:
@@ -45,6 +45,45 @@ def create_rental():
 
 
 #`POST /rentals/check-in`
+@rentals_bp.route("/check-in", methods=["POST"])
+def delete_and_update_one_rental():
+    request_body = request.get_json()
+
+    try:
+        customer = validate_model(Customer, request_body["customer_id"])
+        video = validate_model(Video, request_body["video_id"])
+
+        rental = db.session.query(Rental).filter_by(video_id=video.id, customer_id=customer.id).first() # if customer has more than two rentals
+        # checked_in_rental = validate_model(Rental, {"id": rental.id, "customer_id": rental.customer_id, "video_id": rental.video_id})
+
+        if not rental:
+            abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
+        
+        videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()  # look into count method, refactor duplicate code
+        available_inventory = video.total_inventory - len(videos_checked_out)
+
+        customer.videos_checked_out_count -= 1
+        available_inventory += 1
+        
+    except KeyError as key_error:
+        abort(make_response({"message":f"Could not perform checkout bc {key_error.args[0]}"}, 400))
+
+    db.session.delete(rental)
+    # db.session.add(customer)  # upgrade instead?
+    db.session.commit()
+
+    rental_response = rental.to_dict()
+    rental_response["videos_checked_out_count"] = customer.videos_checked_out_count
+    rental_response["available_inventory"] = available_inventory
+        
+    return jsonify(rental_response), 200
+
+# {
+#   "customer_id": 122581016,
+#   "video_id": 277419103,
+#   "videos_checked_out_count": 1,
+#   "available_inventory": 6
+# }
 
 
 
