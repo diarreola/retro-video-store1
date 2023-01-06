@@ -18,42 +18,30 @@ def create_rental():
         if video.total_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
 
-        available_inventory = video.total_inventory - video.videos_checked_out_count
+        videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()
+
+        available_inventory = video.total_inventory - len(videos_checked_out)
         if available_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
         
         new_rental = Rental(customer_id=request_body["customer_id"],
                 video_id=request_body["video_id"]
                 )
-    except:
-        abort(make_response({"message":f"Could not perform checkout"}, 400))
+        
+        customer.videos_checked_out_count += 1
+    except KeyError as key_error:
+        abort(make_response({"message":f"Could not perform checkout bc {key_error.args[0]}"}, 400))
 
-    video.video_checked_out_count += 1
-    customer.video_checked_out_count += 1
-    # db.session.add(customer)
-    # db.session.add(video)
     db.session.add(new_rental)
+    db.session.add(customer)
     db.session.commit()
 
-
     rental_response = new_rental.to_dict()
-
-    # add 
     rental_response["videos_checked_out_count"] = customer.videos_checked_out_count
+    available_inventory -= 1
     rental_response["available_inventory"] = available_inventory
-
+    
     return jsonify(rental_response), 200
-
-
-    # create a rental for the specific video and customer.
-
-#     {
-#   "customer_id": 122581016,
-#   "video_id": 235040983,
-#   "due_date": "2020-06-31",
-#   "videos_checked_out_count": 2,
-#   "available_inventory": 5
-# }
 
 
 #`POST /rentals/check-in`
