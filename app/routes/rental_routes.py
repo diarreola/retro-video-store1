@@ -18,7 +18,9 @@ def create_rental():
         if video.total_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
 
-        available_inventory = video.total_inventory - video.videos_checked_out_count
+        videos_checked_out_count = len(Rental.query.filter_by(video.id).all())
+        available_inventory = video.total_inventory - videos_checked_out_count
+
         if available_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
         
