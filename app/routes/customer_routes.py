@@ -2,6 +2,8 @@ from flask import Blueprint, jsonify, abort, make_response, request
 from app import db
 from datetime import datetime
 from app.models.customer import Customer
+from app.models.rental import Rental
+from app.models.video import Video
 from app.routes.routes_helper import validate_model
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
@@ -67,3 +69,38 @@ def delete_customer(customer_id):
 
     customer_response = customer.to_dict()
     return jsonify(customer_response),200
+
+## `GET /customers/<id>/rentals` GET /customers/<id>/rentals
+@customers_bp.route("/<id>/rentals", methods=["GET"])
+def read_all_customer_rentals(id):
+    customer = validate_model(Customer, id)
+
+    # get video ids from rental model based on the customer id
+    customer_rentals = db.session.query(Rental).filter_by(customer_id=customer.id).all()
+    video_list = []
+    for rental in customer_rentals:
+        # video = db.session.query(Video).filter_by(video_id=rental.video_id)
+        video = Video.query.get(rental.video_id)
+        video_list.append(video.to_dict())
+    
+    # get video details from video model
+    return jsonify(video_list), 200
+
+# List the videos a customer currently has checked out
+
+# CHECK: if customer does not exist!
+# empty list of no video checked out
+# response
+# [
+#     {
+#         "release_date": "Wed, 01 Jan 1958 00:00:00 GMT",
+#         "title": "Vertigo",
+#         "due_date": "Thu, 13 May 2021 19:27:47 GMT",
+#     },
+#     {
+#         "release_date": "Wed, 01 Jan 1941 00:00:00 GMT",
+#         "title": "Citizen Kane",
+#         "due_date": "Thu, 13 May 2021 19:28:00 GMT",
+#     }
+# ]
+# 
