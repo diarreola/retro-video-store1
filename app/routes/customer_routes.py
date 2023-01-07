@@ -4,7 +4,7 @@ from datetime import datetime
 from app.models.customer import Customer
 from app.models.rental import Rental
 from app.models.video import Video
-from app.routes.routes_helper import validate_model
+from app.routes.routes_helper import validate_model, validate_num_queries
 
 customers_bp = Blueprint("customers_bp", __name__, url_prefix="/customers")
 
@@ -31,11 +31,86 @@ def create_customer():
 @customers_bp.route("", methods=["GET"])
 def read_all_customers():
     customer_query = Customer.query
+    # customers = customer_query.all()
+
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name.asc())
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code.asc())
+        elif sort_query == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at.asc())
+        else:
+            customer_query = customer_query.order_by(Customer.id.asc())
+
+    count_query = request.args.get("count")  # check if count and page/ if only count, display all pages
+    page_num_query = request.args.get("page_num")
+
+        # check for invalid count
+        # check for invalid page_num
+    # if count_query and not page_num_query:
+    #     # ekjfksjbjkbfjhsdbfjhdfbjhfb
+
+    # if count_query or page_num_query:
+    #     customer_query.get()
+
+    # validate_num_queries(count_query)
+
+
+
+    
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+        # need to check if count_query and page_num wuery are valid nums
+
+        page = customer_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        customers = customer_query.all()
+
+        customers_response = []
+
+        for items in page.items:
+            customers_response.append(items.to_dict())
+        return jsonify(customers_response), 200
+
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = customer_query.paginate(per_page=int(count_query), error_out=False)
+        customers = customer_query.all()
+        customers_response = []
+
+        for items in page.items:
+            customers_response.append(items.to_dict())
+        return jsonify(customers_response), 200
+
+
     customers = customer_query.all()
     customers_response = []
     for customer in customers:
         customers_response.append(customer.to_dict())
-    return jsonify(customers_response)
+    return jsonify(customers_response), 200
+
+
+    # def read_all_planets():
+    # planet_query = Planet.query
+    # name_query = request.args.get("name")
+    # if name_query:
+    #     planet_query = planet_query.filter(Planet.name.ilike(f"%{name_query}%"))
+        
+    # sort_query = request.args.get("sort")
+    # if sort_query:
+    #     if sort_query == "desc":
+    #         planet_query = planet_query.order_by(Planet.name.desc())
+    #     else:
+    #         planet_query = planet_query.order_by(Planet.name.asc())
+
+    # planets = planet_query.all()
+    # planets_response = []
+    # for planet in planets:
+    #     planets_response.append(planet.to_dict())
+    # return jsonify(planets_response)
+
+
+
+
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
 def read_one_customer(customer_id):
@@ -92,22 +167,3 @@ def read_all_customer_rentals(id):
     
     # get video details from video model
     return jsonify(video_list), 200
-
-# List the videos a customer currently has checked out
-
-# CHECK: if customer does not exist!
-# empty list of no video checked out
-# response
-# [
-#     {
-#         "release_date": "Wed, 01 Jan 1958 00:00:00 GMT",
-#         "title": "Vertigo",
-#         "due_date": "Thu, 13 May 2021 19:27:47 GMT",
-#     },
-#     {
-#         "release_date": "Wed, 01 Jan 1941 00:00:00 GMT",
-#         "title": "Citizen Kane",
-#         "due_date": "Thu, 13 May 2021 19:28:00 GMT",
-#     }
-# ]
-# 
