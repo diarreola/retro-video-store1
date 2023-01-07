@@ -61,6 +61,13 @@ def update_video(video_id):
 def delete_video(video_id):
     video = validate_model(Video, video_id)
 
+    video_rentals = db.session.query(Rental).filter_by(video_id=video.id).all()
+
+    if video_rentals:
+        for rental in video_rentals:
+            db.session.delete(rental)
+        db.session.commit()
+
     db.session.delete(video)
     db.session.commit()
 
@@ -83,19 +90,3 @@ def read_all_customers_for_video_id_rental(id):
     # get video details from video model
     return jsonify(customer_list), 200
 
-
-
-# [
-#     {
-#         "due_date": "Thu, 13 May 2021 21:36:38 GMT",
-#         "name": "Edith Wong",
-#         "phone": "(555) 555-5555",
-#         "postal_code": "99999",
-#     },
-#     {
-#         "due_date": "Thu, 13 May 2021 21:36:47 GMT",
-#         "name": "Ricarda Mowery",
-#         "phone": "(555) 555-5555",
-#         "postal_code": "99999",
-#     }
-# ]

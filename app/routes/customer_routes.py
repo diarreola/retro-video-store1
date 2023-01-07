@@ -64,6 +64,13 @@ def update_customer(customer_id):
 def delete_customer(customer_id):
     customer = validate_model(Customer, customer_id)
 
+    customer_rentals = db.session.query(Rental).filter_by(customer_id=customer.id).all()
+
+    if customer_rentals:
+        for rental in customer_rentals:
+            db.session.delete(rental)
+        db.session.commit()
+
     db.session.delete(customer)
     db.session.commit()
 
