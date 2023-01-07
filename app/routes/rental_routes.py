@@ -77,23 +77,3 @@ def delete_and_update_one_rental():
     rental_response["available_inventory"] = available_inventory
         
     return jsonify(rental_response), 200
-
-
-
-
-## `GET /videos/<id>/rentals`
-
-# @videos_bp.route(“/<id>/rentals”, methods=[“GET”])
-# def read_rentals_by_video_id(id):
-#     video = Video.query.get(validate_id(id))
-#     if not video:
-#         abort(make_response({“message”:f”Video {id} was not found”}, 404))
-#     rentals_response = []
-#     for rental in video.rentals:
-#         rentals_response.append(
-#             {“due_date”:rental.due_date,
-#             “name”: rental.customer.name,
-#             “phone”: rental.customer.phone,
-#             “postal_code”: rental.customer.postal_code
-#             }
-#         )
