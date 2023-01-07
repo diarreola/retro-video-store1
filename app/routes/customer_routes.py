@@ -47,19 +47,6 @@ def read_all_customers():
     count_query = request.args.get("count")  # check if count and page/ if only count, display all pages
     page_num_query = request.args.get("page_num")
 
-        # check for invalid count
-        # check for invalid page_num
-    # if count_query and not page_num_query:
-    #     # ekjfksjbjkbfjhsdbfjhdfbjhfb
-
-    # if count_query or page_num_query:
-    #     customer_query.get()
-
-    # validate_num_queries(count_query)
-
-
-
-    
     if validate_num_queries(count_query) and validate_num_queries(page_num_query):
         # need to check if count_query and page_num wuery are valid nums
 
@@ -87,30 +74,6 @@ def read_all_customers():
     for customer in customers:
         customers_response.append(customer.to_dict())
     return jsonify(customers_response), 200
-
-
-    # def read_all_planets():
-    # planet_query = Planet.query
-    # name_query = request.args.get("name")
-    # if name_query:
-    #     planet_query = planet_query.filter(Planet.name.ilike(f"%{name_query}%"))
-        
-    # sort_query = request.args.get("sort")
-    # if sort_query:
-    #     if sort_query == "desc":
-    #         planet_query = planet_query.order_by(Planet.name.desc())
-    #     else:
-    #         planet_query = planet_query.order_by(Planet.name.asc())
-
-    # planets = planet_query.all()
-    # planets_response = []
-    # for planet in planets:
-    #     planets_response.append(planet.to_dict())
-    # return jsonify(planets_response)
-
-
-
-
 
 @customers_bp.route("/<customer_id>", methods=["GET"])
 def read_one_customer(customer_id):
@@ -156,14 +119,22 @@ def delete_customer(customer_id):
 @customers_bp.route("/<id>/rentals", methods=["GET"])
 def read_all_customer_rentals(id):
     customer = validate_model(Customer, id)
-
-    # get video ids from rental model based on the customer id
     customer_rentals = db.session.query(Rental).filter_by(customer_id=customer.id).all()
+    video_query = customer_rentals.query(Video).filter_by(Rental.video_id).all()
     video_list = []
     for rental in customer_rentals:
-        # video = db.session.query(Video).filter_by(video_id=rental.video_id)
         video = Video.query.get(rental.video_id)
-        video_list.append(video.to_dict())
+        # video_list.append(video.to_dict())
+
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "title":
+            video_list = video_list.order_by(Video.title.asc())
+        else:
+            video_list = video_list.order_by(Video.id.asc())
+
+    # for video in video_list:
+    #     # video = Video.query.get(rental.video_id)
+    #     video_list.append(video.to_dict())
     
-    # get video details from video model
     return jsonify(video_list), 200
