@@ -119,22 +119,42 @@ def delete_customer(customer_id):
 @customers_bp.route("/<id>/rentals", methods=["GET"])
 def read_all_customer_rentals(id):
     customer = validate_model(Customer, id)
-    customer_rentals = db.session.query(Rental).filter_by(customer_id=customer.id).all()
-    video_query = customer_rentals.query(Video).filter_by(Rental.video_id).all()
-    video_list = []
-    for rental in customer_rentals:
-        video = Video.query.get(rental.video_id)
-        # video_list.append(video.to_dict())
+    video_query = Rental.query.filter_by(customer_id=customer.id).join(Video)
 
     sort_query = request.args.get("sort")
     if sort_query:
         if sort_query == "title":
-            video_list = video_list.order_by(Video.title.asc())
+            video_query = video_query.order_by(Video.title.asc())  # Rental.video.title.asc()
         else:
-            video_list = video_list.order_by(Video.id.asc())
+            video_query = video_query.order_by(Video.id.asc()) 
 
-    # for video in video_list:
-    #     # video = Video.query.get(rental.video_id)
-    #     video_list.append(video.to_dict())
+    count_query = request.args.get("count")  # check if count and page/ if only count, display all pages
+    page_num_query = request.args.get("page_num")
+
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+        # need to check if count_query and page_num wuery are valid nums
+
+        page = video_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        video_query = video_query.all()
+
+        video_result = []
+
+        for items in page.items:
+            video_result.append(items.video.to_dict())
+        return jsonify(video_result), 200
+
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = video_query.paginate(per_page=int(count_query), error_out=False)
+        video_query = video_query.all()
+        video_result = []
+
+        for items in page.items:
+            video_result.append(items.video.to_dict())
+        return jsonify(video_result), 200
+
+    video_result = []
+    video_query = video_query.all()
+    for video in video_query:
+        video_result.append(video.video.to_dict())
     
-    return jsonify(video_list), 200
+    return jsonify(video_result), 200
