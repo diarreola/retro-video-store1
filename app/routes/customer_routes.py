@@ -158,3 +158,15 @@ def read_all_customer_rentals(id):
         video_result.append(video.video.to_dict())
     
     return jsonify(video_result), 200
+
+@customers_bp.route("/<id>/history", methods=["GET"])
+def read_a_customers_all_rental_history(id):
+    customer = validate_model(Customer, id)
+    customer_rental = Rental.query.filter_by(customer_id=customer.id).join(Video).all()
+    
+    customer_history_res =[]
+    for video in customer_rental:
+        customer_history_res.append(video.video.to_dict())
+    return jsonify(customer_history_res), 200
+
+
