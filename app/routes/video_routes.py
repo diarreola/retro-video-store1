@@ -3,7 +3,7 @@ from app.models.video import Video
 from app.models.customer import Customer
 from app.models.rental import Rental
 from app import db
-from app.routes.routes_helper import validate_model
+from app.routes.routes_helper import validate_model, validate_num_queries
 
 videos_bp = Blueprint("videos_bp", __name__, url_prefix="/videos")
 
@@ -62,6 +62,7 @@ def delete_video(video_id):
     video = validate_model(Video, video_id)
 
     video_rentals = db.session.query(Rental).filter_by(video_id=video.id).all()
+    
 
     if video_rentals:
         for rental in video_rentals:
@@ -79,14 +80,45 @@ def delete_video(video_id):
 @videos_bp.route("/<id>/rentals", methods=["GET"])
 def read_all_customers_for_video_id_rental(id):
     video = validate_model(Video, id)
-    
-    # get video ids from rental model based on the customer id
-    video_rentals = db.session.query(Rental).filter_by(video_id=video.id).all()
-    customer_list = []
-    for rental in video_rentals:
-        video = Customer.query.get(rental.customer_id)
-        customer_list.append(video.to_dict())
-    
-    # get video details from video model
-    return jsonify(customer_list), 200
+    customer_query = Rental.query.filter_by(video_id=video.id).join(Customer)
 
+    sort_query = request.args.get("sort")
+    if sort_query:
+        if sort_query == "name":
+            customer_query = customer_query.order_by(Customer.name.asc())
+        elif sort_query == "postal_code":
+            customer_query = customer_query.order_by(Customer.postal_code.asc())
+        elif sort_query == "registered_at":
+            customer_query = customer_query.order_by(Customer.registered_at.asc())
+        else:
+            customer_query = customer_query.order_by(Customer.id.asc())
+
+    count_query = request.args.get("count")  # check if count and page/ if only count, display all pages
+    page_num_query = request.args.get("page_num")
+
+    if validate_num_queries(count_query) and validate_num_queries(page_num_query):
+        # need to check if count_query and page_num query are valid nums
+
+        page = customer_query.paginate(page=int(page_num_query), per_page=int(count_query), error_out=False)
+        customer_query = customer_query.all()
+
+        customer_result = []
+
+        for items in page.items:
+            customer_result.append(items.customer.to_dict())
+        return jsonify(customer_result), 200
+    
+    if validate_num_queries(count_query) and not validate_num_queries(page_num_query):
+        page = customer_query.paginate(per_page=int(count_query), error_out=False)
+        customer_query = customer_query.all()
+        customer_result = []
+
+        for items in page.items:
+            customer_result.append(items.customer.to_dict())
+        return jsonify(customer_result), 200
+
+    customer_result = []
+    customer_query = customer_query.all()
+    for customer in customer_query:
+        customer_result.append(customer.customer.to_dict())
+    return jsonify(customer_result), 200
