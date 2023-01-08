@@ -58,18 +58,21 @@ def delete_and_update_one_rental():
 
         if not rental:
             abort(make_response({"message": f"No outstanding rentals for customer {customer.id} and video {video.id}"}, 400))
+
+        if rental.check_out_status == False:
+            abort(make_response({"message":f"Could not perform checkout bc already checked out"}, 400))
         
         videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()  # look into count method, refactor duplicate code
         available_inventory = video.total_inventory - len(videos_checked_out)
 
         customer.videos_checked_out_count -= 1
         available_inventory += 1
+        rental.check_out_status = False
         
     except KeyError as key_error:
         abort(make_response({"message":f"Could not perform checkout bc {key_error.args[0]}"}, 400))
 
-    db.session.delete(rental)
-    # db.session.add(customer)  # upgrade instead?
+    db.session.add(rental)
     db.session.commit()
 
     rental_response = rental.to_dict()

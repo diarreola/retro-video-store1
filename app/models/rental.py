@@ -4,6 +4,7 @@ import datetime
 class Rental(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     due_date = db.Column(db.DateTime, default=(datetime.date.today()+datetime.timedelta(days=7)))
+    check_out_status = db.Column(db.Boolean,default = True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), primary_key=True,nullable=False)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'), primary_key=True,nullable=False)
     customer = db.relationship("Customer", back_populates="rentals")
@@ -15,6 +16,7 @@ class Rental(db.Model):
         rental_dict["customer_id"] = self.customer_id
         rental_dict["video_id"] = self.video_id
         rental_dict["due_date"] = self.due_date
+        rental_dict["check_out_status"] = self.check_out_status
         return rental_dict
 
     @classmethod

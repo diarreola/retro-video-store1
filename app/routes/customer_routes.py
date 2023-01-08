@@ -162,7 +162,7 @@ def read_all_customer_rentals(id):
 @customers_bp.route("/<id>/history", methods=["GET"])
 def read_a_customers_all_rental_history(id):
     customer = validate_model(Customer, id)
-    customer_rental = Rental.query.filter_by(customer_id=customer.id).join(Video).all()
+    customer_rental = Rental.query.filter_by(customer_id=customer.id,check_out_status = False).join(Video).all()
     
     customer_history_res =[]
     for video in customer_rental:
