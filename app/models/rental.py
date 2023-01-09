@@ -2,11 +2,11 @@ from app import db
 import datetime
 
 class Rental(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True,nullable=False)
     due_date = db.Column(db.DateTime, default=(datetime.date.today()+datetime.timedelta(days=7)))
     check_out_status = db.Column(db.Boolean,default = True)
-    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'), primary_key=True,nullable=False)
-    video_id = db.Column(db.Integer, db.ForeignKey('video.id'), primary_key=True,nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey('customer.id'),nullable=False)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'),nullable=False)
     customer = db.relationship("Customer", back_populates="rentals")
     video = db.relationship("Video", back_populates="rentals")
 
