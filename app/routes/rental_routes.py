@@ -15,12 +15,15 @@ def create_rental():
     try:
         customer = validate_model(Customer, request_body["customer_id"])
         video = validate_model(Video, request_body["video_id"])
-        if video.total_inventory == 0:
-            abort(make_response({"message":f"Could not perform checkout"}, 400))
-
+        
         videos_checked_out = db.session.query(Rental).filter_by(video_id=video.id).all()  # look into count method
+        available_inventory = 0
 
-        available_inventory = video.total_inventory - len(videos_checked_out)
+        if not videos_checked_out:
+            available_inventory = video.total_inventory
+        else:
+            available_inventory = video.total_inventory - len(videos_checked_out)
+            
         if available_inventory == 0:
             abort(make_response({"message":f"Could not perform checkout"}, 400))
         
